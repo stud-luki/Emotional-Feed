@@ -124,30 +124,17 @@ let scores = { ...EMPTY_SCORES };
 
 let motion;
 
-function preload() {
-  feedPhotos = loadImageMap(ASSET_PATHS.feedPhotos);
-  reactionIcons = loadImageMap(ASSET_PATHS.reactionIcons);
-  uiIcons = loadImageMap(ASSET_PATHS.uiIcons);
-
-  for (let i = 1; i <= 6; i++) {
-    profiles.push(loadImage("Images/Profiles/Profile-" + i + ".png"));
-  }
-
-  posts = POST_DATA.map((post) => ({
-    ...post,
-    image: feedPhotos[post.photoKey],
-    reaction: null,
-  }));
-}
-
-function setup() {
+async function setup() {
   createCanvas(LAYOUT.canvasWidth, windowHeight);
   textFont("Inter");
+  await loadAssets();
   initMotion();
   setupCameraEmotionDetection();
 }
 
 function draw() {
+  if (!motion) return;
+
   detectFaceEmotion();
   updateMotion();
   drawBackground();
@@ -174,11 +161,28 @@ function emotion(config) {
   };
 }
 
-function loadImageMap(paths) {
+async function loadAssets() {
+  feedPhotos = await loadImageMap(ASSET_PATHS.feedPhotos);
+  reactionIcons = await loadImageMap(ASSET_PATHS.reactionIcons);
+  uiIcons = await loadImageMap(ASSET_PATHS.uiIcons);
+
+  profiles = [];
+  for (let i = 1; i <= 6; i++) {
+    profiles.push(await loadImage("Images/Profiles/Profile-" + i + ".png"));
+  }
+
+  posts = POST_DATA.map((post) => ({
+    ...post,
+    image: feedPhotos[post.photoKey],
+    reaction: null,
+  }));
+}
+
+async function loadImageMap(paths) {
   let images = {};
 
   for (let key in paths) {
-    images[key] = loadImage(paths[key]);
+    images[key] = await loadImage(paths[key]);
   }
 
   return images;
@@ -592,4 +596,3 @@ function drawPostReaction(post, x, y) {
     image(uiIcons.like, x, y, 22, 20);
   }
 }
-//Koniec kodu :)
