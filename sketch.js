@@ -73,7 +73,7 @@ const ASSET_PATHS = {
 };
 
 const STORY_NAMES = [
-  "wimfti",
+  "schoolofform",
   "michcarlos",
   "soniakieryl",
   "haniasri",
