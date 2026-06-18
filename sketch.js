@@ -592,3 +592,4 @@ function drawPostReaction(post, x, y) {
     image(uiIcons.like, x, y, 22, 20);
   }
 }
+//Koniec kodu :)
