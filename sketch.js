@@ -558,7 +558,7 @@ function getFeedImageScale(expressions) {
   let sadScore = constrain(expressions.sad, 0, 1);
 
   if (sadScore > EMOTIONS.sad.threshold && sadScore >= wowScore) {
-    return lerp(1, 0.92, sadScore);
+    return lerp(1, 0.85, sadScore);
   }
 
   if (wowScore <= EMOTIONS.wow.threshold) return 1;
