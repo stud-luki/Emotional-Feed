@@ -558,18 +558,20 @@ function getFeedImageScale(expressions) {
 
   if (wowScore <= EMOTIONS.wow.threshold) return 1;
 
-  return lerp(1, 1.06, wowScore);
+  return lerp(1, 1.08, wowScore);
 }
 
 function roundedImage(img, x, y, w, h, radius, scale = 1) {
   let scaledW = w * scale;
   let scaledH = h * scale;
+  let scaledX = x - (scaledW - w) / 2;
+  let scaledY = y - (scaledH - h) / 2;
 
   drawingContext.save();
   drawingContext.beginPath();
-  drawingContext.roundRect(x, y, scaledW, scaledH, radius * scale);
+  drawingContext.roundRect(scaledX, scaledY, scaledW, scaledH, radius * scale);
   drawingContext.clip();
-  image(img, x, y, scaledW, scaledH);
+  image(img, scaledX, scaledY, scaledW, scaledH);
   drawingContext.restore();
 }
 
