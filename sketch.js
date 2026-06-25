@@ -13,6 +13,7 @@ const MOTION_SPEED = {
   story: 0.08,
   text: 0.08,
   feedImageScale: 0.08,
+  feedImageShadow: 0.08,
   wow: 0.9,
 };
 
@@ -213,6 +214,7 @@ function initMotion() {
       storyRingWeight: neutral.storyRingWeight,
       textSpacing: neutral.textSpacing,
       feedImageScale: 1,
+      feedImageShadow: 0,
       wow: 0,
     },
     target: {
@@ -223,6 +225,7 @@ function initMotion() {
       storyRingWeight: neutral.storyRingWeight,
       textSpacing: neutral.textSpacing,
       feedImageScale: 1,
+      feedImageShadow: 0,
     },
   };
 }
@@ -235,6 +238,7 @@ function updateMotion() {
   smoothValue("storyRingWeight", MOTION_SPEED.story);
   smoothValue("textSpacing", MOTION_SPEED.text);
   smoothValue("feedImageScale", MOTION_SPEED.feedImageScale);
+  smoothValue("feedImageShadow", MOTION_SPEED.feedImageShadow);
   motion.current.wow *= MOTION_SPEED.wow;
 }
 
@@ -400,6 +404,7 @@ function detectFaceEmotion() {
     scores = getEmotionScores(result.faceBlendshapes[0].categories);
     motion.target.elementRadius = getImageRadius(scores);
     motion.target.feedImageScale = getFeedImageScale(scores);
+    motion.target.feedImageShadow = getFeedImageShadow(scores);
 
     if (millis() - lastEmotionChange > MEDIA_PIPE.minEmotionDuration) {
       checkEmotion(scores);
@@ -423,6 +428,7 @@ function resetEmotion() {
   scores = { ...EMPTY_SCORES };
   motion.target.elementRadius = 0;
   motion.target.feedImageScale = 1;
+  motion.target.feedImageShadow = 0;
   setEmotion("neutral");
 }
 
@@ -558,7 +564,7 @@ function getFeedImageScale(expressions) {
   let sadScore = constrain(expressions.sad, 0, 1);
 
   if (sadScore > EMOTIONS.sad.threshold && sadScore >= wowScore) {
-    return lerp(1, 0.85, sadScore);
+    return lerp(1, 0.92, sadScore);
   }
 
   if (wowScore <= EMOTIONS.wow.threshold) return 1;
@@ -566,11 +572,31 @@ function getFeedImageScale(expressions) {
   return lerp(1, 1.08, wowScore);
 }
 
-function roundedImage(img, x, y, w, h, radius, scale = 1) {
+function getFeedImageShadow(expressions) {
+  let angryScore = constrain(expressions.angry, 0, 1);
+
+  if (angryScore <= EMOTIONS.angry.threshold) return 0;
+
+  return angryScore;
+}
+
+function roundedImage(img, x, y, w, h, radius, scale = 1, shadow = 0) {
   let scaledW = w * scale;
   let scaledH = h * scale;
   let scaledX = x - (scaledW - w) / 2;
   let scaledY = y - (scaledH - h) / 2;
+
+  if (shadow > 0.01) {
+    drawingContext.save();
+    drawingContext.beginPath();
+    drawingContext.roundRect(scaledX, scaledY, scaledW, scaledH, radius * scale);
+    drawingContext.shadowColor = "rgba(60, 16, 8, " + 0.42 * shadow + ")";
+    drawingContext.shadowBlur = lerp(0, 38, shadow);
+    drawingContext.shadowOffsetY = lerp(0, 14, shadow);
+    drawingContext.fillStyle = "rgba(248, 93, 58, 0.01)";
+    drawingContext.fill();
+    drawingContext.restore();
+  }
 
   drawingContext.save();
   drawingContext.beginPath();
@@ -643,6 +669,7 @@ function drawPost(post, postY) {
     473,
     imageRadius * 3,
     motion.current.feedImageScale,
+    motion.current.feedImageShadow,
   );
   drawPostReaction(post, postX, postY + 530);
   image(uiIcons.comment, postX + 45, postY + 530, 25, 20);
