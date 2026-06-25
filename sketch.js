@@ -12,6 +12,7 @@ const MOTION_SPEED = {
   radius: 0.08,
   story: 0.08,
   text: 0.08,
+  feedImageScale: 0.08,
   wow: 0.9,
 };
 
@@ -211,6 +212,7 @@ function initMotion() {
       storyRadius: neutral.storyRadius,
       storyRingWeight: neutral.storyRingWeight,
       textSpacing: neutral.textSpacing,
+      feedImageScale: 1,
       wow: 0,
     },
     target: {
@@ -220,6 +222,7 @@ function initMotion() {
       storyRadius: neutral.storyRadius,
       storyRingWeight: neutral.storyRingWeight,
       textSpacing: neutral.textSpacing,
+      feedImageScale: 1,
     },
   };
 }
@@ -231,6 +234,7 @@ function updateMotion() {
   smoothValue("storyRadius", MOTION_SPEED.story);
   smoothValue("storyRingWeight", MOTION_SPEED.story);
   smoothValue("textSpacing", MOTION_SPEED.text);
+  smoothValue("feedImageScale", MOTION_SPEED.feedImageScale);
   motion.current.wow *= MOTION_SPEED.wow;
 }
 
@@ -395,6 +399,7 @@ function detectFaceEmotion() {
   if (result.faceBlendshapes && result.faceBlendshapes.length > 0) {
     scores = getEmotionScores(result.faceBlendshapes[0].categories);
     motion.target.elementRadius = getImageRadius(scores);
+    motion.target.feedImageScale = getFeedImageScale(scores);
 
     if (millis() - lastEmotionChange > MEDIA_PIPE.minEmotionDuration) {
       checkEmotion(scores);
@@ -417,6 +422,7 @@ function canDetectEmotion() {
 function resetEmotion() {
   scores = { ...EMPTY_SCORES };
   motion.target.elementRadius = 0;
+  motion.target.feedImageScale = 1;
   setEmotion("neutral");
 }
 
@@ -547,12 +553,25 @@ function getImageRadius(expressions) {
   return constrain(happyRadius + sadRadius, 0, 82);
 }
 
-function roundedImage(img, x, y, w, h, radius) {
+function getFeedImageScale(expressions) {
+  let wowScore = constrain(expressions.wow, 0, 1);
+
+  if (wowScore <= EMOTIONS.wow.threshold) return 1;
+
+  return lerp(1, 1.06, wowScore);
+}
+
+function roundedImage(img, x, y, w, h, radius, scale = 1) {
+  let scaledW = w * scale;
+  let scaledH = h * scale;
+  let scaledX = x - (scaledW - w) / 2;
+  let scaledY = y - (scaledH - h) / 2;
+
   drawingContext.save();
   drawingContext.beginPath();
   drawingContext.roundRect(x, y, w, h, radius);
   drawingContext.clip();
-  image(img, x, y, w, h);
+  image(img, scaledX, scaledY, scaledW, scaledH);
   drawingContext.restore();
 }
 
@@ -611,7 +630,15 @@ function drawPost(post, postY) {
   applyEmotionTextStyle();
   drawEmotionText(post.name, postX + 56, postY + 16, 2);
 
-  roundedImage(post.image, postX, postY + 45, 468, 473, imageRadius * 3);
+  roundedImage(
+    post.image,
+    postX,
+    postY + 45,
+    468,
+    473,
+    imageRadius * 3,
+    motion.current.feedImageScale,
+  );
   drawPostReaction(post, postX, postY + 530);
   image(uiIcons.comment, postX + 45, postY + 530, 25, 20);
 }
