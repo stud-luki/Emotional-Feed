@@ -558,7 +558,7 @@ function getFeedImageScale(expressions) {
 
   if (wowScore <= EMOTIONS.wow.threshold) return 1;
 
-  return lerp(1, 1.08, wowScore);
+  return lerp(1, 1.10, wowScore);
 }
 
 function roundedImage(img, x, y, w, h, radius, scale = 1) {
