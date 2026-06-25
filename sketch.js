@@ -30,7 +30,7 @@ const EMOTIONS = {
     threshold: 0.08,
     color: [96, 159, 192],
     gradient: { top: [96, 159, 192], bottom: [158, 203, 226] },
-    storyRingWeight: 9,
+    storyRingWeight: 2,
     textSpacing: 1,
   }),
   wow: emotion({
@@ -99,11 +99,23 @@ const POST_DATA = [
 
 const LAYOUT = {
   canvasWidth: 1440,
-  header: { titleX: 720, titleY: 42, underlineX: 668, underlineY: 61, underlineW: 104 },
+  header: {
+    titleX: 720,
+    titleY: 42,
+    underlineX: 668,
+    underlineY: 61,
+    underlineW: 104,
+  },
   sideMenu: { x: 20, gap: 82 },
   story: { startX: 420, y: 96, gap: 105, ring: 80, image: 74 },
   post: { x: 480, firstY: 270, gap: 640, activeCenterOffset: 320 },
-  reaction: { xFromRight: 230, yFromBottom: 64, gap: 36, width: 160, height: 18 },
+  reaction: {
+    xFromRight: 230,
+    yFromBottom: 64,
+    gap: 36,
+    width: 160,
+    height: 18,
+  },
 };
 
 let feedPhotos = {};
@@ -227,7 +239,11 @@ function smoothValue(name, speed) {
 }
 
 function smoothColor(name, speed) {
-  motion.current[name] = lerpColor(motion.current[name], motion.target[name], speed);
+  motion.current[name] = lerpColor(
+    motion.current[name],
+    motion.target[name],
+    speed,
+  );
 }
 
 function drawBackground() {
@@ -248,7 +264,10 @@ function drawBackground() {
       height / 2,
       height * 0.75,
     );
-    glow.addColorStop(0, "rgba(235, 215, 255, " + 0.45 * motion.current.wow + ")");
+    glow.addColorStop(
+      0,
+      "rgba(235, 215, 255, " + 0.45 * motion.current.wow + ")",
+    );
     glow.addColorStop(1, "rgba(235, 215, 255, 0)");
     drawingContext.fillStyle = glow;
     drawingContext.fillRect(0, 0, width, height);
@@ -349,7 +368,9 @@ async function setupCameraEmotionDetection() {
 
 async function startMediaPipe(delegateName) {
   let mediaPipe = await import(MEDIA_PIPE.packageUrl);
-  let vision = await mediaPipe.FilesetResolver.forVisionTasks(MEDIA_PIPE.wasmUrl);
+  let vision = await mediaPipe.FilesetResolver.forVisionTasks(
+    MEDIA_PIPE.wasmUrl,
+  );
 
   faceLandmarker = await mediaPipe.FaceLandmarker.createFromOptions(vision, {
     baseOptions: {
@@ -402,7 +423,8 @@ function resetEmotion() {
 function getEmotionScores(categories) {
   let score = scoreMap(categories);
   let value = (name) => score[name] || 0;
-  let avg = (...names) => names.reduce((sum, name) => sum + value(name), 0) / names.length;
+  let avg = (...names) =>
+    names.reduce((sum, name) => sum + value(name), 0) / names.length;
 
   return {
     happy: constrain(avg("mouthSmileLeft", "mouthSmileRight") * 1.25, 0, 1),
@@ -420,7 +442,11 @@ function getEmotionScores(categories) {
       0,
       1,
     ),
-    wow: constrain(avg("browInnerUp", "browOuterUp") * 1.5 + value("jawOpen") * 1.5, 0, 1),
+    wow: constrain(
+      avg("browInnerUp", "browOuterUp") * 1.5 + value("jawOpen") * 1.5,
+      0,
+      1,
+    ),
   };
 }
 
@@ -477,7 +503,8 @@ function getActivePost() {
   let postLayout = LAYOUT.post;
   let viewCenterY = feedScroll + height / 2;
   let index = round(
-    (viewCenterY - postLayout.firstY - postLayout.activeCenterOffset) / postLayout.gap,
+    (viewCenterY - postLayout.firstY - postLayout.activeCenterOffset) /
+      postLayout.gap,
   );
 
   return posts[constrain(index, 0, posts.length - 1)];
