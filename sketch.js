@@ -555,10 +555,15 @@ function getImageRadius(expressions) {
 
 function getFeedImageScale(expressions) {
   let wowScore = constrain(expressions.wow, 0, 1);
+  let sadScore = constrain(expressions.sad, 0, 1);
+
+  if (sadScore > EMOTIONS.sad.threshold && sadScore >= wowScore) {
+    return lerp(1, 0.92, sadScore);
+  }
 
   if (wowScore <= EMOTIONS.wow.threshold) return 1;
 
-  return lerp(1, 1.10, wowScore);
+  return lerp(1, 1.08, wowScore);
 }
 
 function roundedImage(img, x, y, w, h, radius, scale = 1) {
